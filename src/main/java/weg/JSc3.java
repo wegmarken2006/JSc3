@@ -168,6 +168,60 @@ public class JSc3 {
         }
     }
 
+    public static <T> void printUgen(T ugen)
+    {
+        if (ugen instanceof Control)
+        {
+            System.out.println("K: " + ((Control)ugen).name);
+        }
+        else if (ugen instanceof Primitive)
+        {
+            System.out.println("P: " + ((Primitive)ugen).name);
+        }
+        else if (ugen instanceof Constant<?>)
+        {
+            if (((Constant)ugen).value instanceof Integer) {
+                System.out.println("C: " + Integer.toString((int)((Constant)ugen).value));    
+            }
+            else {
+                System.out.println("C: " + Double.toString((double)((Constant)ugen).value));    
+            }
+        }
+        else if (ugen instanceof Mce)
+        {
+            System.out.println("Mce: " + Integer.toString(((Mce)ugen).ugens.l.size()));
+            printUgens(((Mce)ugen).ugens);
+        }
+        else if (ugen instanceof Mrg)
+        {
+            System.out.println("Mrg: ");
+            System.out.print(" * left: ");
+            printUgen(((Mrg)ugen).left);
+            System.out.print(" * right: ");
+            printUgen(((Mrg)ugen).right);
+        }
+        else if (ugen instanceof Proxy)
+        {
+            System.out.println("Proxy: ");
+        }
+        else
+        {
+            System.out.print(ugen);
+        }
+
+
+    }
+    public static void printUgens(UgenL ugenl)
+    {
+        List<Object> ugens = ugenl.l;
+        for (Object ugen : ugens)
+        {
+            System.out.println(" - ");
+            printUgen(ugen);
+        }
+
+    }
+
     public static List<Object> extend(List<Object> iList, int newLen)
     {
         int ln = iList.size();
@@ -233,6 +287,51 @@ public class JSc3 {
         }
     }
 
-    
+    public static <T>boolean is_mce(T ugen)
+    {
+        if (ugen instanceof Mce)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static <T> void printLList(List<List<T>> iList)
+    {
+        int len1 = iList.size();
+        int len2 = iList.get(0).size();
+
+        for (int ind1 = 0; ind1 < len1; ind1++)
+        {
+            for (int ind2 = 0; ind2 < len2; ind2++)
+            {
+                printUgen(iList.get(ind1).get(ind2));
+                System.out.print(" ");
+            }
+            System.out.println("");
+        }
+    }
+
+    public static List<List<Object>> transposer(List<List<Object>> iList)
+    {
+        int len1 = iList.size();
+        int len2 = iList.get(0).size();
+        List<List<Object>> outv = new ArrayList<List<Object>>();
+        for (int ind = 0; ind < len2; ind++)
+        {
+            outv.add(new ArrayList<Object>());
+        }
+        for (int ind2 = 0; ind2 < len2; ind2++)
+        {
+            for (int ind1 = 0; ind1 < len1; ind1++)
+            {
+                outv.get(ind2).add(iList.get(ind1).get(ind2));
+            }
+        }
+        return outv;
+    }
 
 }

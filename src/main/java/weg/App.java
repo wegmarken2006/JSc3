@@ -19,6 +19,7 @@ public class App
     {
         System.out.println( "Hello World!" );
         Constant<Integer> c1 = new Constant<Integer>(100);
+        Constant<Double> c2 = new Constant<Double>(100.1);
         Control k1 = new Control("K1").rate(Rate.RateAr);
         System.out.println(c1.value);
         List<Object> ul = new ArrayList<>();
@@ -27,9 +28,13 @@ public class App
         System.out.println(ul.get(0));
         System.out.println(ul.get(1));
         Primitive p1 = new Primitive("P1");
-        List<Object> l1 = List.of(1,2,3,4,5,6);
-        List<Object> l2 = JSc3.extend(l1, 3);
-        for (Object elem : l2) System.out.println(elem);
+        JSc3.printUgen(c1);
+        JSc3.printUgen(c2);
+        List<List<Object>> ill1 = List.of(List.of(1, 2, 3), List.of(4, 5, 6));
+        List<List<Object>> ill2 = JSc3.transposer(ill1);
+        JSc3.printLList(ill1);
+        JSc3.printLList(ill2);
+
 
 
         
