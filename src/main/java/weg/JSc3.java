@@ -42,14 +42,14 @@ public class JSc3 {
         }
     }
 
-    public class Mce {
+    public static class Mce {
         public UgenL ugens;
         public Mce(UgenL ugens){
             this.ugens = ugens;
         }
     }
 
-    public class Mrg {
+    public static class Mrg {
         public Object left, right;
         public Mrg(Object left, Object right)
         {
@@ -76,7 +76,7 @@ public class JSc3 {
     public static class Primitive {
         public Rate rate = Rate.RateKr;
         public UgenL inputs = new UgenL();
-        public List<Rate> output = null;
+        public List<Rate> outputs = null;
         public String name;
         public int special = 0;
         public int index = 0;
@@ -90,8 +90,8 @@ public class JSc3 {
             return this;
         }
 
-        public Primitive output(List<Rate> output) {
-            this.output = output;
+        public Primitive outputs(List<Rate> outputs) {
+            this.outputs = outputs;
             return this;
         }
 
@@ -165,6 +165,71 @@ public class JSc3 {
         } else {
             return Rate.RateIr;
             // throw new Exception("Error: rate_of");
+        }
+    }
+
+    public static List<Object> extend(List<Object> iList, int newLen)
+    {
+        int ln = iList.size();
+        List<Object> vout = new ArrayList<Object>();
+        if (ln > newLen)
+        {
+            return iList.subList(0, newLen);
+        }
+        else
+        {
+            vout.addAll(iList);
+            vout.addAll(iList);
+            return extend(vout, newLen);
+        }
+    }
+
+    public static <T> int mce_degree(T ugen) throws Exception
+    {
+        if (ugen instanceof Mce)
+        {
+            return ((Mce)ugen).ugens.l.size();
+        }
+        else if (ugen instanceof Mrg)
+        {
+            return mce_degree(((Mrg)ugen).left);
+        }
+        else
+        {
+            throw new Exception("Error: mce_degree");
+        }
+    }
+
+    public static <T> List<Object> mce_extend(int n, T ugen) throws Exception
+    {
+        if (ugen instanceof Mce)
+        {
+            List<Object> iList = ((Mce)ugen).ugens.l;
+            return extend(iList, n);
+        }
+        else if (ugen instanceof Mrg)
+        {
+            List<Object> ex = mce_extend(n, ((Mrg)ugen).left);
+            int len = ex.size();
+            if (len > 0)
+            {
+                List<Object> outv = List.of(ugen);
+                outv.addAll(ex.subList(1, n - 1));
+                return outv;
+            }
+            else
+            {
+                throw new Exception("mce_extend");
+            }
+        }
+        else
+        {
+            List<Object> outv = new ArrayList<Object>();
+            for (int ind = 0; ind < n; ind++)
+            {
+                outv.add(ugen);
+            }
+            return outv;
         }
     }
 
