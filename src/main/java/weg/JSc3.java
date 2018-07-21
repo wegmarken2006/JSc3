@@ -223,6 +223,19 @@ public class JSc3 {
 
     }
 
+    public static List<Integer> iota (int n, int init, int step)
+    {
+        if (n == 0) {
+            return new ArrayList<Integer>()
+        }
+        else {
+            List<Integer> out = List.of(init);
+            out.addAll(iota(n-1, init+step, step));
+            return out;
+        }
+    }
+
+
     public static List<Object> extend(List<Object> iList, int newLen)
     {
         int ln = iList.size();
@@ -460,6 +473,37 @@ public class JSc3 {
         }            
     }
 
+    public static Object proxify (Object ugen) throws Exception
+    {
+        if (ugen instanceof Mce) {
+            UgenL lst = new UgenL();
+            for (Object elem : ((Mce)ugen).ugens.l) {
+                lst.l.add(proxify(elem));
+            }
+            return new Mce(lst);
+        }
+        else if (ugen instanceof Mrg) {
+            Object prx = proxify(((Mrg)ugen).left);
+            return new Mrg(prx, ((Mrg)ugen).right);
+        }
+        else if (ugen instanceof Primitive) {
+            int ln = ((Primitive)ugen).outputs.size();
+            if (ln < 2) {
+                return ugen;
+            }
+            else {
+                List<Integer> lst1 = iota(ln, 0, 1);
+                UgenL lst2 = new UgenL();
+                for (int ind : lst1) {
+                    lst2.l.add(proxify(new Proxy((Primitive)ugen).index(ind)));
+                }
+                return new Mce(lst2);
+            }
 
+        }
+        else {
+            throw new Exception("proxify");
+        }
+    }
 
 }
