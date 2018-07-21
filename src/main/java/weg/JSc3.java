@@ -419,6 +419,46 @@ public class JSc3 {
             else return ugen;
         }
     }
+    public static Object mce_channel(int n, Object ugen) throws Exception
+    {
+        if (ugen instanceof Mce) {
+            List<Object> ugens = ((Mce)ugen).ugens.l;
+            return ugens.get(n);
+        }
+        else throw new Exception("Error: mce_channel");
+    }
+
+    public static UgenL mce_channels(Object ugen) throws Exception
+    {
+        if (ugen instanceof Mce)
+        {
+            UgenL ugens = ((Mce)ugen).ugens;
+            return ugens;
+        }
+        else if (ugen instanceof Mrg) {
+            Object left =  ((Mrg)ugen).left;
+            Object right =  ((Mrg)ugen).right;
+            UgenL lst = mce_channels(left);
+            int len = lst.l.size();
+            if (len > 1) {
+                Mrg mrg1 = new Mrg(lst.l.get(0), right);
+                List<Object> outv = List.of(mrg1);
+                outv.addAll(lst.l.subList(1, len - 1));
+                UgenL newOut = new UgenL();
+                newOut.l = outv;
+                return newOut;
+
+            }
+            else throw new Exception("Error: mce_channels");
+        }
+        else {
+            List<Object> outv = new ArrayList<Object>();
+            outv.add(ugen);
+            UgenL newOut = new UgenL();
+            newOut.l = outv;
+            return newOut;
+        }            
+    }
 
 
 

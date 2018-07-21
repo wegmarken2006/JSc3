@@ -44,7 +44,8 @@ public class AppTest {
     List<Object> exmg1 = new ArrayList<>();
     List<Object> exmg2 = new ArrayList<>();
     int mcdg1;
-    Mce mc10; 
+    Mce mc10;
+    UgenL mc11; 
 
     @Test
     public void test1() {
@@ -64,7 +65,7 @@ public class AppTest {
             exmg2 = JSc3.mce_extend(3, mc1);
             mcdg1 = JSc3.mce_degree(mc1);
             mc10 = JSc3.mce_transform(p3);
-            //var mc11 = mce_channels(mg3);
+            mc11 = JSc3.mce_channels(mg3);
             assertTrue("T5", mcdg1 == 2);
             assertTrue("T7", exmg2.size() == 3);
             assertTrue((((Primitive)exmg2.get(2))).name == "P1");
@@ -75,6 +76,9 @@ public class AppTest {
             assertTrue(exmg1.size() == 3);
             assertTrue(mc10 instanceof Mce);
             assertTrue(((Primitive)mc10.ugens.l.get(2)).name == "P3");   
+            assertTrue(mc11.l.size() == 2);
+            assertTrue(mc11.l.get(1) instanceof Mrg);
+            assertTrue(mc11.l.get(2) instanceof Primitive);
 
 
         } catch (Exception e) {
