@@ -226,7 +226,7 @@ public class JSc3 {
     public static List<Integer> iota (int n, int init, int step)
     {
         if (n == 0) {
-            return new ArrayList<Integer>()
+            return new ArrayList<Integer>();
         }
         else {
             List<Integer> out = List.of(init);
