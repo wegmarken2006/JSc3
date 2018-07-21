@@ -1,5 +1,6 @@
 package weg;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -43,26 +44,44 @@ public class AppTest {
     List<Object> exmg1 = new ArrayList<>();
     List<Object> exmg2 = new ArrayList<>();
     int mcdg1;
-
+    Mce mc10; 
 
     @Test
-    public void shouldAnswerWithTrue() {
+    public void test1() {
      
         assertTrue("T1", c1.value == 1);
         assertTrue("T2", c1 instanceof Constant<?>);
         assertTrue("T3", p1.name == "P1");
         assertTrue("T4", p1 instanceof Primitive);
         assertTrue("T6", JSc3.extend(il1.l, 7).size() == 7);
+    }
+
+    @Test
+    public void test2() {
+
         try {
+            exmg1 = JSc3.mce_extend(3, mg1);
             exmg2 = JSc3.mce_extend(3, mc1);
             mcdg1 = JSc3.mce_degree(mc1);
+            mc10 = JSc3.mce_transform(p3);
+            //var mc11 = mce_channels(mg3);
+            assertTrue("T5", mcdg1 == 2);
+            assertTrue("T7", exmg2.size() == 3);
+            assertTrue((((Primitive)exmg2.get(2))).name == "P1");
+            assertTrue((((Primitive)exmg1.get(2))).name == "P2");
+            assertTrue(JSc3.is_mce(mc1));
+            assertFalse(JSc3.is_mce(mg1));
+            assertTrue(ill2.size() == 3);
+            assertTrue(exmg1.size() == 3);
+            assertTrue(mc10 instanceof Mce);
+            assertTrue(((Primitive)mc10.ugens.l.get(2)).name == "P3");   
+
+
         } catch (Exception e) {
-            //TODO: handle exception
+            e.printStackTrace();
         }
-        assertTrue("T5", mcdg1 == 2);
-        assertTrue("T7", exmg2.size() == 3);
-    
-        
 
     }
+
+    
 }

@@ -2,6 +2,7 @@ package weg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class JSc3 {
@@ -333,5 +334,92 @@ public class JSc3 {
         }
         return outv;
     }
+
+    public static <T> Mce mce_transform(T ugen) throws Exception
+    {
+        if (ugen instanceof Primitive)
+        {
+            Primitive prim = ((Primitive)ugen);
+            UgenL inputs = prim.inputs;
+            List<Object> ins = inputs.l.stream().filter(x -> is_mce(x)).collect(Collectors.toList());
+            List<Integer> degs = new ArrayList<Integer>();
+            for (Object elem : ins)
+            {
+                degs.add(mce_degree(elem));
+            }
+            int upr = max_num(degs, 0);
+            List<List<Object>> ext = new ArrayList<List<Object>>();
+            for (Object elem : inputs.l)
+            {
+                ext.add(mce_extend(upr, elem));
+            }
+            List<List<Object>> iet = transposer(ext);
+            List<Object> outv = new ArrayList<Object>();
+            //var outv = new UgenL();
+            for (List<Object> elem2 : iet)
+            {
+                UgenL newInps = new UgenL();
+                newInps.l = elem2;
+                Primitive p = new Primitive(prim.name)
+                 .inputs(newInps) .outputs(prim.outputs)
+                .rate(prim.rate) .special(prim.special) .index(prim.index);
+                //outv.l.Add(p);
+                outv.add(p);
+
+            }
+            UgenL newOut = new UgenL();
+            newOut.l = outv;
+            //return new Mce(ugens: outv);
+            return new Mce(newOut);
+        }
+        else
+        {
+            throw new Exception("Error: mce_transform");
+        }
+    }
+
+    public static <T> Object mce_expand(T ugen) throws Exception
+    {
+        if (ugen instanceof Mce)
+        {
+            List<Object> lst = new ArrayList<Object>();
+            List<Object> ugens = ((Mce)ugen).ugens.l;
+            for (Object elem : ugens) {
+                lst.add(mce_expand(elem));
+            }
+            UgenL outv = new UgenL();
+            outv.l = lst;
+            return new Mce(outv);
+        }
+        else if (ugen instanceof Mrg)
+        {
+            Object left =  ((Mrg)ugen).left;
+            Object right =  ((Mrg)ugen).right;
+            Object ug1 = mce_expand(left);
+            return new Mrg(ug1, right);
+        }
+        else
+        {
+            Function<T, Boolean> rec = (T ug) ->
+            {
+                if (ugen instanceof Primitive) {
+                    UgenL inputs = ((Primitive)ug).inputs;
+                    List<Object> ins = inputs.l.stream().filter(x -> is_mce(x)).collect(Collectors.toList());
+                    return (ins.size() > 0);
+                }
+                else return false;
+            };
+            if (rec.apply(ugen)) {
+                try {
+                    return mce_expand(mce_transform(ugen));        
+                } catch (Exception e) {
+                    throw new Exception("mce_expand");
+                }
+            }
+            else return ugen;
+        }
+    }
+
+
 
 }
