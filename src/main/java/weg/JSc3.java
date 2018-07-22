@@ -1,6 +1,7 @@
 package weg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -229,8 +230,11 @@ public class JSc3 {
             return new ArrayList<Integer>();
         }
         else {
-            List<Integer> out = List.of(init);
-            out.addAll(iota(n-1, init+step, step));
+            var outInit = List.of(init); //immutable!!
+            var out = new ArrayList<Integer>();
+            out.addAll(outInit);
+            var retList = iota(n-1, init+step, step);
+            out.addAll(retList);   
             return out;
         }
     }
@@ -476,25 +480,25 @@ public class JSc3 {
     public static Object proxify (Object ugen) throws Exception
     {
         if (ugen instanceof Mce) {
-            UgenL lst = new UgenL();
+            var lst = new UgenL();
             for (Object elem : ((Mce)ugen).ugens.l) {
                 lst.l.add(proxify(elem));
             }
             return new Mce(lst);
         }
         else if (ugen instanceof Mrg) {
-            Object prx = proxify(((Mrg)ugen).left);
+            var prx = proxify(((Mrg)ugen).left);
             return new Mrg(prx, ((Mrg)ugen).right);
         }
         else if (ugen instanceof Primitive) {
-            int ln = ((Primitive)ugen).outputs.size();
+            var ln = ((Primitive)ugen).outputs.size();
             if (ln < 2) {
                 return ugen;
             }
             else {
-                List<Integer> lst1 = iota(ln, 0, 1);
-                UgenL lst2 = new UgenL();
-                for (int ind : lst1) {
+                var lst1 = iota(ln, 0, 1);
+                var lst2 = new UgenL();
+                for (var ind : lst1) {
                     lst2.l.add(proxify(new Proxy((Primitive)ugen).index(ind)));
                 }
                 return new Mce(lst2);
@@ -505,5 +509,30 @@ public class JSc3 {
             throw new Exception("proxify");
         }
     }
+
+	public static Object mk_ugen(String name, UgenL inputs, 
+			List<Rate> outputs) throws Exception {
+		var ind = 0;
+		var sp = 0;
+		return mk_ugen(name, inputs, outputs, ind, sp);
+	}
+
+	public static Object mk_ugen(String name, UgenL inputs, 
+			List<Rate> outputs, int ind) throws Exception {
+		var sp = 0;
+		return mk_ugen(name, inputs, outputs, ind, sp);
+	}
+
+	public static Object mk_ugen(String name, UgenL inputs, 
+			List<Rate> outputs, int ind, int sp) throws Exception {
+		var rate = Rate.RateKr;
+		var pr1 = new Primitive(name).rate(rate).inputs(inputs).outputs(outputs).special(sp).index(ind);
+		try {
+			return proxify(mce_expand(pr1));	
+		} catch (Exception e) {
+			throw new Exception("mk_ugen");
+		}
+		
+	}
 
 }

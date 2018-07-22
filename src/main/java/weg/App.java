@@ -39,8 +39,11 @@ public class App
         List<List<Object>> ill2 = JSc3.transposer(ill1);
 
         try {
+        	//var pp = JSc3.proxify(mg3);
+        	System.out.println(JSc3.iota(5, 3, 2));
             System.out.println(JSc3.mce_degree(mc1));            
         } catch (Exception e) {
+        	e.printStackTrace();
             //TODO: handle exception
         }
 
