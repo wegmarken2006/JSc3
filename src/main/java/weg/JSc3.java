@@ -24,6 +24,7 @@ public class JSc3 {
     private JSc3() {
     }
 
+    
     public static class Constant<T> {
         public T value;
 
@@ -126,7 +127,155 @@ public class JSc3 {
             return this;
         }
     }
+    
+    public static class NodeC
+    {
+        public int nid, value;
+        public NodeC(int nid, int value)
+        {
+            this.nid = nid;
+            this.value = value;
+        }
+    }
 
+
+    public static class NodeK
+    {
+        public int nid;
+        public int deflt = 0;
+        public String name;
+        public Rate rate = Rate.RateKr;
+        
+        public NodeK(int nid, String name)
+        {
+        	this.name = name;
+            this.nid = nid;
+        }
+        
+        public NodeK deflt(int deflt)
+        {
+            this.deflt = deflt;
+            return this;
+        }
+
+        public NodeK rate(Rate rate)
+        {
+            this.rate = rate;
+            return this;
+        }
+
+    }
+    
+    public static class NodeU
+    {
+        public int nid;
+        public String name;        
+        public List<Object> inputs;
+        public List<Rate> outputs;
+        public int special;
+        public int ugenId = 0;
+        public Rate rate = Rate.RateKr;
+        public NodeU(int nid, String name, List<Object> inputs,
+        		List<Rate> outputs, int ugenId) {
+        	this.nid = nid;
+        	this.name = name;
+        	this.inputs = inputs;
+        	this.outputs = outputs;
+        }
+        public NodeU ugenId(int ugenId) {
+        	this.ugenId = ugenId;
+        	return this;
+        }
+        public NodeU rate(Rate rate) {
+        	this.rate = rate;
+        	return this;
+        }
+
+    }
+
+    public static class FromPortC {
+    	int port_nid;
+        public FromPortC(int port_nid) {
+            this.port_nid = port_nid;
+        }
+    }
+        
+    public static class  FromPortK {
+    	int port_nid;
+        public FromPortK(int port_nid) {
+            this.port_nid = port_nid;
+        }
+    }
+
+    public static class  FromPortU {
+    	int port_nid;
+    	int port_idx;
+        public FromPortU(int port_nid, int port_idx) {
+            this.port_nid = port_nid;
+            this.port_idx = port_idx;
+        }
+    }
+
+    public static class Graph {
+    	public int nextId;
+    	public List<NodeC> constants;
+    	public List<NodeK> controls;
+    	public List<NodeU> ugens;
+    	public Graph(int nextId, List<NodeC> constants, 
+    			List<NodeK> controls, List<NodeU> ugens) {
+    		this.nextId = nextId;
+    		this.constants = constants;
+    		this.controls = controls;
+    		this.ugens = ugens;
+    	}
+    }
+    
+    public static class MMap {
+    	List<Integer> cs;
+    	List<Integer> ks;
+    	List<Integer> us;
+    	public MMap(List<Integer> cs, List<Integer> ks, List<Integer> us) {
+            this.cs = cs;
+            this.ks = ks;
+            this.us = us;		
+    	}
+    }
+
+    public static class Input {    	
+    	int u;
+    	int p;
+        public Input (int u, int p) {
+            this.u = u;
+            this.p = p;
+        }
+    }
+    
+    public static int node_c_value(NodeC node) {
+        return node.value;
+    }
+        
+    public static int  node_k_default(NodeK node) {
+        return node.deflt;
+    }
+
+    public static MMap  mk_map(Graph graph) {
+        var cs = new ArrayList<Integer>();
+        var ks = new ArrayList<Integer>();
+        var us = new ArrayList<Integer>();
+        for (var el1 : graph.constants) {
+            cs.add(el1.nid);
+        }
+        for (var el2 : graph.controls) {
+        	ks.add(el2.nid);
+        }            
+        for (var el3 : graph.ugens) {
+        	us.add(el3.nid);
+        }
+            
+        return new MMap(cs, ks, us);    	
+    }
+
+    
     public static Rate max_rate(List<Rate> rates) {
         Rate start = Rate.RateIr;
         return max_rate(rates, start);
@@ -231,11 +380,11 @@ public class JSc3 {
         }
         else {
             var outInit = List.of(init); //immutable!!
-            var out = new ArrayList<Integer>();
-            out.addAll(outInit);
+            var outv = new ArrayList<Integer>();
+            outv.addAll(outInit);
             var retList = iota(n-1, init+step, step);
-            out.addAll(retList);   
-            return out;
+            outv.addAll(retList);   
+            return outv;
         }
     }
 
@@ -285,8 +434,10 @@ public class JSc3 {
             int len = ex.size();
             if (len > 0)
             {
-                List<Object> outv = List.of(ugen);
-                outv.addAll(ex.subList(1, n - 1));
+                var outInit = List.of(ugen); //immutable!!
+                var outv = new ArrayList<Object>();
+                outv.addAll(outInit);
+                outv.addAll(ex.subList(1, n));
                 return outv;
             }
             else
@@ -459,8 +610,10 @@ public class JSc3 {
             int len = lst.l.size();
             if (len > 1) {
                 Mrg mrg1 = new Mrg(lst.l.get(0), right);
-                List<Object> outv = List.of(mrg1);
-                outv.addAll(lst.l.subList(1, len - 1));
+                var outInit = List.of(mrg1);
+                var outv = new ArrayList<Object>();
+                outv.addAll(outInit);
+                outv.addAll(lst.l.subList(1, len));
                 UgenL newOut = new UgenL();
                 newOut.l = outv;
                 return newOut;
