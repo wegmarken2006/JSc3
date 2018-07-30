@@ -60,12 +60,25 @@ public class AppTest {
             NodeC ndc2 = new NodeC(21, 321);
             NodeK ndk1 = new NodeK(30, "ndk1");
             NodeK ndk2 = new NodeK(31, "ndk2");
-            NodeU ndu1 = new NodeU(40,  "ndu1", List.of(mg1, mg2), 
+            NodeU ndu1 = new NodeU(40,  "ndu1", new UgenL(mg1, mg2), 
             		List.of(Rate.RateAr, Rate.RateKr, Rate.RateIr), 2).rate(Rate.RateAr);
-            NodeU ndu2 = new NodeU(41, "ndu2", List.of(), List.of(), 3).rate(Rate.RateAr);
+            NodeU ndu2 = new NodeU(41, "ndu2", new UgenL(), List.of(), 3).rate(Rate.RateAr);
             Graph gr1 = new Graph(11, List.of(ndc1, ndc2), List.of(ndk1, ndk2),
             		            List.of(ndu1, ndu2));
-//            MMap m1 = mk_map(gr1);
+            MMap m1 = JSc3.mk_map(gr1);
+            var n1 = JSc3.mk_node_c(new Constant(320), gr1);
+            var nn = n1.one;
+            var ck1 = new Control("ndk1").rate(Rate.RateKr).index(3);
+            var n2 = JSc3.mk_node_k(ck1, gr1);
+            var nn2 = n2.one;
+            var n3 = JSc3.mk_node(new Constant(320), gr1);
+            var nn3 = n3.one;
+            var cs1 = new Constant(11);
+            var p4 = new Primitive("p4").rate(Rate.RateAr).inputs(new UgenL(cs1, cs1))
+                    .outputs(List.of(Rate.RateIr)) .special(0).index(0);
+
+            var n4 = JSc3.mk_node(p4, gr1);
+            var nn4 = n4.one;
 
             assertTrue("T1", c1.value == 1);
             assertTrue("T2", c1 instanceof Constant<?>);
@@ -93,6 +106,13 @@ public class AppTest {
             assertTrue(mc11.l.get(1) instanceof Primitive);
             assertTrue(JSc3.node_c_value(nc1) == 3);
             assertTrue(JSc3.node_k_default(nk1) == 5);
+            
+            assertTrue(JSc3.find_c_p(3, nc1) == true);
+            assertTrue(JSc3.find_k_p("ndk1", ndk1) == true);
+            assertTrue(nn.nid == 20);
+            assertTrue(nn2.nid == 30);
+            assertTrue(((NodeC)nn3).nid == 20);
+            
 
 
 
