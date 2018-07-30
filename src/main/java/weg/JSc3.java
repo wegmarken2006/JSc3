@@ -1,5 +1,6 @@
 package weg;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -194,22 +195,22 @@ public class JSc3 {
     }
 
     public static class FromPortC {
-    	int port_nid;
+    	public int port_nid;
         public FromPortC(int port_nid) {
             this.port_nid = port_nid;
         }
     }
         
     public static class  FromPortK {
-    	int port_nid;
+    	public int port_nid;
         public FromPortK(int port_nid) {
             this.port_nid = port_nid;
         }
     }
 
     public static class  FromPortU {
-    	int port_nid;
-    	int port_idx;
+    	public int port_nid;
+    	public int port_idx;
         public FromPortU(int port_nid, int port_idx) {
             this.port_nid = port_nid;
             this.port_idx = port_idx;
@@ -231,9 +232,9 @@ public class JSc3 {
     }
     
     public static class MMap {
-    	List<Integer> cs;
-    	List<Integer> ks;
-    	List<Integer> us;
+    	public List<Integer> cs;
+    	public List<Integer> ks;
+    	public List<Integer> us;
     	public MMap(List<Integer> cs, List<Integer> ks, List<Integer> us) {
             this.cs = cs;
             this.ks = ks;
@@ -242,39 +243,14 @@ public class JSc3 {
     }
 
     public static class Input {    	
-    	int u;
-    	int p;
+    	public int u;
+    	public int p;
         public Input (int u, int p) {
             this.u = u;
             this.p = p;
         }
     }
     
-    public static int node_c_value(NodeC node) {
-        return node.value;
-    }
-        
-    public static int  node_k_default(NodeK node) {
-        return node.deflt;
-    }
-
-    public static MMap  mk_map(Graph graph) {
-        var cs = new ArrayList<Integer>();
-        var ks = new ArrayList<Integer>();
-        var us = new ArrayList<Integer>();
-        for (var el1 : graph.constants) {
-            cs.add(el1.nid);
-        }
-        for (var el2 : graph.controls) {
-        	ks.add(el2.nid);
-        }            
-        for (var el3 : graph.ugens) {
-        	us.add(el3.nid);
-        }
-            
-        return new MMap(cs, ks, us);    	
-    }
-
     
     public static Rate max_rate(List<Rate> rates) {
         Rate start = Rate.RateIr;
@@ -667,18 +643,25 @@ public class JSc3 {
 			List<Rate> outputs) throws Exception {
 		var ind = 0;
 		var sp = 0;
-		return mk_ugen(name, inputs, outputs, ind, sp);
+		var rate = Rate.RateKr;
+		return mk_ugen(name, inputs, outputs, ind, sp, rate);
 	}
 
 	public static Object mk_ugen(String name, UgenL inputs, 
 			List<Rate> outputs, int ind) throws Exception {
 		var sp = 0;
-		return mk_ugen(name, inputs, outputs, ind, sp);
+		var rate = Rate.RateKr;
+		return mk_ugen(name, inputs, outputs, ind, sp, rate);
 	}
 
 	public static Object mk_ugen(String name, UgenL inputs, 
 			List<Rate> outputs, int ind, int sp) throws Exception {
 		var rate = Rate.RateKr;
+		return mk_ugen(name, inputs, outputs, ind, sp, rate);
+	}
+
+	public static Object mk_ugen(String name, UgenL inputs, 
+			List<Rate> outputs, int ind, int sp, Rate rate) throws Exception {		
 		var pr1 = new Primitive(name).rate(rate).inputs(inputs).outputs(outputs).special(sp).index(ind);
 		try {
 			return proxify(mce_expand(pr1));	
@@ -687,5 +670,81 @@ public class JSc3 {
 		}
 		
 	}
+    public static int node_c_value(NodeC node) {
+        return node.value;
+    }
+        
+    public static int  node_k_default(NodeK node) {
+        return node.deflt;
+    }
+    
+    public static MMap  mk_map(Graph graph) {
+        var cs = new ArrayList<Integer>();
+        var ks = new ArrayList<Integer>();
+        var us = new ArrayList<Integer>();
+        for (var el1 : graph.constants) {
+            cs.add(el1.nid);
+        }
+        for (var el2 : graph.controls) {
+        	ks.add(el2.nid);
+        }            
+        for (var el3 : graph.ugens) {
+        	us.add(el3.nid);
+        }
+            
+        return new MMap(cs, ks, us);    	
+    }
+    
+    public static int fetch(int val, List<Integer> lst) {
+    	var it = lst.listIterator();
+    	while (it.hasNext()) {
+    		if (val == it.next()) {
+    			return it.nextIndex();
+    		}    		
+    	}
+        return -1;
+    }
+    
+    public static boolean find_c_p(int val, Object node) throws Exception {
+        if (node instanceof NodeC) {
+            return val == ((NodeC)node).value;
+        }
+        throw new Exception("find_c_p");
+    }
+
+    public static class Tuple2<T, U> {
+    	public T one;
+    	public U two;
+    	public Tuple2 (T one, U two) {
+    		this.one = one;
+    		this.two = two;
+    	}
+    }
+    
+    public static Tuple2<Object, Graph> push_c(int val, Graph gr) {
+        var node = new NodeC(gr.nextId+1, val);
+        var consts = new ArrayList<NodeC>();
+        consts.add(node);
+        consts.addAll(gr.constants);
+        var gr1 = new Graph(gr.nextId+1, consts, gr.controls, gr.ugens);
+        return new Tuple2<Object, Graph>(node, gr1);
+    }
+
+    public static Tuple2<Object, Graph> mk_node_c(Object ugen, Graph gr) throws Exception{
+		try {
+			var val = ((Constant<Integer>) ugen).value;
+			for (var nd : gr.constants) {
+				if (find_c_p(val, (Object) nd)) {
+					return new Tuple2<Object, Graph>(nd, gr);
+				}
+			}
+			return push_c(val, gr);
+			
+		} catch (Exception e) {
+			throw new Exception("make_node_c");
+		}
+    }
+      
+
 
 }
