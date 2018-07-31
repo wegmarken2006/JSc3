@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -66,19 +67,19 @@ public class AppTest {
             Graph gr1 = new Graph(11, List.of(ndc1, ndc2), List.of(ndk1, ndk2),
             		            List.of(ndu1, ndu2));
             MMap m1 = JSc3.mk_map(gr1);
-            var n1 = JSc3.mk_node_c(new Constant(320), gr1);
+            var mcs1 = m1.cs;
+            var n1 = JSc3.mk_node_c(new Constant<Integer>(320), gr1);
             var nn = n1.one;
             var ck1 = new Control("ndk1").rate(Rate.RateKr).index(3);
             var n2 = JSc3.mk_node_k(ck1, gr1);
             var nn2 = n2.one;
-            var n3 = JSc3.mk_node(new Constant(320), gr1);
+            var n3 = JSc3.mk_node(new Constant<Integer>(320), gr1);
             var nn3 = n3.one;
-            var cs1 = new Constant(11);
+            var cs1 = new Constant<Integer>(11);
             var p4 = new Primitive("p4").rate(Rate.RateAr).inputs(new UgenL(cs1, cs1))
                     .outputs(List.of(Rate.RateIr)) .special(0).index(0);
-
-            var n4 = JSc3.mk_node(p4, gr1);
-            var nn4 = n4.one;
+//            var n4 = JSc3.mk_node(p4, gr1);
+//            var nn4 = n4.one;
 
             assertTrue("T1", c1.value == 1);
             assertTrue("T2", c1 instanceof Constant<?>);
@@ -106,12 +107,14 @@ public class AppTest {
             assertTrue(mc11.l.get(1) instanceof Primitive);
             assertTrue(JSc3.node_c_value(nc1) == 3);
             assertTrue(JSc3.node_k_default(nk1) == 5);
-            
+            assertTrue(m1.cs.containsAll(List.of(20, 21)));
             assertTrue(JSc3.find_c_p(3, nc1) == true);
             assertTrue(JSc3.find_k_p("ndk1", ndk1) == true);
             assertTrue(nn.nid == 20);
             assertTrue(nn2.nid == 30);
             assertTrue(((NodeC)nn3).nid == 20);
+            assertTrue(JSc3.fetch(31, JSc3.mk_map(gr1).ks) == 1);
+//            assertTrue(nn4.name == "p4");
             
 
 

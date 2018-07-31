@@ -629,8 +629,9 @@ public class JSc3 {
 	public static int fetch(int val, List<Integer> lst) {
 		var it = lst.listIterator();
 		while (it.hasNext()) {
+			var index = it.nextIndex();
 			if (val == it.next()) {
-				return it.nextIndex();
+				return index;
 			}
 		}
 		return -1;
@@ -807,4 +808,66 @@ public class JSc3 {
 		}
 	}
 	
+	public static NodeU sc3_implicit (int num) {
+	    var rates = new ArrayList<Rate>();
+	    for (var ind = 1; ind < num+1; ind++) {
+	        rates.add(Rate.RateKr);
+	    }
+	    var node = new NodeU(-1, "Control", new UgenL(), new ArrayList<Rate>(),0)
+	    		.special(0) .rate(Rate.RateKr);
+	    return node;
+	}
+	
+	public static Object mrg_n(UgenL lst) {
+	    if (lst.l.size() == 1) {
+	        return lst.l.get(0);
+	    }
+	    else if (lst.l.size() == 2) {
+	        return new Mrg(lst.l.get(0), lst.l.get(1));
+	    }
+	    else {
+	    	var newLst = new UgenL(lst.l.subList(1, lst.l.size()));
+	        return new Mrg(lst.l.get(0), mrg_n(newLst));
+	    }
+	}
+	
+	public static <T> Object prepare_root(T ugen) {
+	    if (ugen instanceof Mce) {
+	        return mrg_n(((Mce)ugen).ugens);
+	    }
+	    else if (ugen instanceof Mrg) {
+	        return new Mrg(prepare_root(((Mrg)ugen).left), prepare_root(((Mrg)ugen).right));
+	    }
+	    else {
+	        return ugen;
+	    }
+	}
+
+	public static Graph empty_graph() {
+	    return new Graph(0, new ArrayList<NodeC>(), new ArrayList<NodeK>(), new ArrayList<NodeU>());
+	}
+
+	public static <T> Graph synth(T ugen) throws Exception {
+		try {
+		    var root = prepare_root(ugen);
+		    var gn = mk_node(root, empty_graph());
+		    var gr = gn.two;
+		    var cs = gr.constants;
+		    var ks = gr.controls;
+		    var us = gr.ugens;
+		    var us1 = us;
+		    Collections.reverse(us1);
+		    if (ks.size() != 0) {
+		    	var node = sc3_implicit(ks.size());
+		    	us1.add(0, node);
+		    }
+		    var grout = new Graph(-1, cs, ks, us1);
+		    return grout;
+			
+		} catch (Exception e) {
+			throw new Exception("synth");
+		}
+	}
+
+
 }
