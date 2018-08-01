@@ -28,6 +28,7 @@ public class JSc3 {
 	private JSc3() {
 	}
 
+
 	public static class Constant<T> {
 		public T value;
 

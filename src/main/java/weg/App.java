@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import weg.JSc3.*;
+import weg.Osc.*;
 
 
 /**
@@ -46,6 +47,9 @@ public class App
         	e.printStackTrace();
             //TODO: handle exception
         }        
+        var a = Osc.encode_f64(10.2);
+        var b = Osc.decode_f64(a);
+        System.out.println(b);    
     }
 }
 
