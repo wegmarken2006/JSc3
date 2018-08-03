@@ -1,12 +1,8 @@
 package weg;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -28,6 +24,14 @@ public class JSc3 {
 	private JSc3() {
 	}
 
+	public interface IUgen
+	{
+		boolean isUgen();
+	}
+
+	public IUgen test() {
+		return new Control("GIGI");
+	}
 
 	public static class Constant<T> {
 		public T value;
@@ -38,38 +42,46 @@ public class JSc3 {
 	}
 
 	public static class UgenL {
-		public List<Object> l;
+		public List<IUgen> l;
 
 		// vararg constructor
-		public UgenL(Object... values) {
-			l = new ArrayList<Object>();
-			for (Object value : values) {
+		public UgenL(IUgen... values) {
+			l = new ArrayList<IUgen>();
+			for (var value : values) {
 				this.l.add(value);
 			}
 		}
 	}
 
-	public static class Mce {
+	public static class Mce implements IUgen
+	{
 		public UgenL ugens;
 
+		public boolean isUgen() { return true; }
+		
 		public Mce(UgenL ugens) {
 			this.ugens = ugens;
 		}
 	}
 
-	public static class Mrg {
-		public Object left, right;
+	public static class Mrg implements IUgen
+	{
+		public IUgen left, right;
 
-		public Mrg(Object left, Object right) {
+		public boolean isUgen() { return true; }
+		
+		public Mrg(IUgen left, IUgen right) {
 			this.left = left;
 			this.right = right;
 		}
 	}
 
-	public static class Control {
+	public static class Control implements IUgen {
 		public String name;
 		public int index = 0;
 		public Rate rate = Rate.RateKr;
+
+		public boolean isUgen() { return true; }
 
 		public Control(String name) {
 			this.name = name;
@@ -87,7 +99,8 @@ public class JSc3 {
 
 	}
 
-	public static class Primitive {
+	public static class Primitive implements IUgen 
+	{
 		public Rate rate = Rate.RateKr;
 		public UgenL inputs = new UgenL();
 		public List<Rate> outputs = null;
@@ -95,6 +108,8 @@ public class JSc3 {
 		public int special = 0;
 		public int index = 0;
 
+		public boolean isUgen() { return true; }
+		
 		public Primitive(String name) {
 			this.name = name;
 		}
@@ -125,9 +140,11 @@ public class JSc3 {
 		}
 	}
 
-	public static class Proxy {
+	public static class Proxy implements IUgen {
 		public Primitive primitive;
 		public int index = 0;
+
+		public boolean isUgen() { return true; }
 
 		public Proxy(Primitive primitive) {
 			this.primitive = primitive;
@@ -287,7 +304,7 @@ public class JSc3 {
 		return max1;
 	}
 
-	public static <T> Rate rate_of(T ugen) {
+	public static Rate rate_of(IUgen ugen) {
 		if (ugen instanceof Control) {
 			return ((Control) ugen).rate;
 		} else if (ugen instanceof Primitive) {
@@ -333,8 +350,8 @@ public class JSc3 {
 	}
 
 	public static void printUgens(UgenL ugenl) {
-		List<Object> ugens = ugenl.l;
-		for (Object ugen : ugens) {
+		List<IUgen> ugens = ugenl.l;
+		for (var ugen : ugens) {
 			System.out.println(" - ");
 			printUgen(ugen);
 		}
@@ -378,7 +395,7 @@ public class JSc3 {
 
 	public static <T> List<Object> mce_extend(int n, T ugen) throws Exception {
 		if (ugen instanceof Mce) {
-			List<Object> iList = ((Mce) ugen).ugens.l;
+			var iList = ((Mce) ugen).ugens.l;
 			return extend(iList, n);
 		} else if (ugen instanceof Mrg) {
 			List<Object> ex = mce_extend(n, ((Mrg) ugen).left);
@@ -509,7 +526,7 @@ public class JSc3 {
 
 	public static Object mce_channel(int n, Object ugen) throws Exception {
 		if (ugen instanceof Mce) {
-			List<Object> ugens = ((Mce) ugen).ugens.l;
+			var ugens = ((Mce) ugen).ugens.l;
 			return ugens.get(n);
 		} else
 			throw new Exception("Error: mce_channel");
@@ -527,7 +544,7 @@ public class JSc3 {
 			if (len > 1) {
 				Mrg mrg1 = new Mrg(lst.l.get(0), right);
 				var outInit = List.of(mrg1);
-				var outv = new ArrayList<Object>();
+				var outv = new ArrayList<IUgen>();
 				outv.addAll(outInit);
 				outv.addAll(lst.l.subList(1, len));
 				UgenL newOut = new UgenL();
@@ -545,10 +562,10 @@ public class JSc3 {
 		}
 	}
 
-	public static Object proxify(Object ugen) throws Exception {
+	public static IUgen proxify(IUgen ugen) throws Exception {
 		if (ugen instanceof Mce) {
 			var lst = new UgenL();
-			for (Object elem : ((Mce) ugen).ugens.l) {
+			for (var elem : ((Mce) ugen).ugens.l) {
 				lst.l.add(proxify(elem));
 			}
 			return new Mce(lst);
