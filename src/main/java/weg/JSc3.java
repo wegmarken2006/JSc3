@@ -29,9 +29,6 @@ public class JSc3 {
 		boolean isUgen();
 	}
 
-	public IUgen test() {
-		return new Control("GIGI");
-	}
 
 	public static class Constant<T> {
 		public T value;
@@ -216,25 +213,29 @@ public class JSc3 {
 
 	}
 
-	public static class FromPortC {
+	public static class FromPortC implements IUgen{
 		public int port_nid;
+		public boolean isUgen() { return true; }
 
 		public FromPortC(int port_nid) {
 			this.port_nid = port_nid;
 		}
 	}
 
-	public static class FromPortK {
+	public static class FromPortK implements IUgen{
 		public int port_nid;
+		
+		public boolean isUgen() { return true; }
 
 		public FromPortK(int port_nid) {
 			this.port_nid = port_nid;
 		}
 	}
 
-	public static class FromPortU {
+	public static class FromPortU implements IUgen {
 		public int port_nid;
 		public int port_idx;
+		public boolean isUgen() { return true; }
 
 		public FromPortU(int port_nid, int port_idx) {
 			this.port_nid = port_nid;
@@ -321,7 +322,7 @@ public class JSc3 {
 		}
 	}
 
-	public static <T> void printUgen(T ugen) {
+	public static void printUgen(IUgen ugen) {
 		if (ugen instanceof Control) {
 			System.out.println("K: " + ((Control) ugen).name);
 		} else if (ugen instanceof Primitive) {
@@ -371,9 +372,9 @@ public class JSc3 {
 		}
 	}
 
-	public static List<Object> extend(List<Object> iList, int newLen) {
+	public static List<IUgen> extend(List<IUgen> iList, int newLen) {
 		int ln = iList.size();
-		List<Object> vout = new ArrayList<Object>();
+		var vout = new ArrayList<IUgen>();
 		if (ln > newLen) {
 			return iList.subList(0, newLen);
 		} else {
@@ -383,7 +384,7 @@ public class JSc3 {
 		}
 	}
 
-	public static <T> int mce_degree(T ugen) throws Exception {
+	public static int mce_degree(IUgen ugen) throws Exception {
 		if (ugen instanceof Mce) {
 			return ((Mce) ugen).ugens.l.size();
 		} else if (ugen instanceof Mrg) {
@@ -393,16 +394,16 @@ public class JSc3 {
 		}
 	}
 
-	public static <T> List<Object> mce_extend(int n, T ugen) throws Exception {
+	public static List<IUgen> mce_extend(int n, IUgen ugen) throws Exception {
 		if (ugen instanceof Mce) {
 			var iList = ((Mce) ugen).ugens.l;
 			return extend(iList, n);
 		} else if (ugen instanceof Mrg) {
-			List<Object> ex = mce_extend(n, ((Mrg) ugen).left);
+			var ex = mce_extend(n, ((Mrg) ugen).left);
 			int len = ex.size();
 			if (len > 0) {
 				var outInit = List.of(ugen); // immutable!!
-				var outv = new ArrayList<Object>();
+				var outv = new ArrayList<IUgen>();
 				outv.addAll(outInit);
 				outv.addAll(ex.subList(1, n));
 				return outv;
@@ -410,7 +411,7 @@ public class JSc3 {
 				throw new Exception("mce_extend");
 			}
 		} else {
-			List<Object> outv = new ArrayList<Object>();
+			var outv = new ArrayList<IUgen>();
 			for (int ind = 0; ind < n; ind++) {
 				outv.add(ugen);
 			}
@@ -426,7 +427,7 @@ public class JSc3 {
 		}
 	}
 
-	public static <T> void printLList(List<List<T>> iList) {
+	public static void printLList(List<List<IUgen>> iList) {
 		int len1 = iList.size();
 		int len2 = iList.get(0).size();
 
@@ -439,12 +440,12 @@ public class JSc3 {
 		}
 	}
 
-	public static List<List<Object>> transposer(List<List<Object>> iList) {
+	public static <T> List<List<T>> transposer(List<List<T>> iList) {
 		int len1 = iList.size();
 		int len2 = iList.get(0).size();
-		List<List<Object>> outv = new ArrayList<List<Object>>();
+		var outv = new ArrayList<List<T>>();
 		for (int ind = 0; ind < len2; ind++) {
-			outv.add(new ArrayList<Object>());
+			outv.add(new ArrayList<T>());
 		}
 		for (int ind2 = 0; ind2 < len2; ind2++) {
 			for (int ind1 = 0; ind1 < len1; ind1++) {
@@ -454,24 +455,24 @@ public class JSc3 {
 		return outv;
 	}
 
-	public static <T> Mce mce_transform(T ugen) throws Exception {
+	public static Mce mce_transform(IUgen ugen) throws Exception {
 		if (ugen instanceof Primitive) {
 			Primitive prim = ((Primitive) ugen);
 			UgenL inputs = prim.inputs;
-			List<Object> ins = inputs.l.stream().filter(x -> is_mce(x)).collect(Collectors.toList());
+			var ins = inputs.l.stream().filter(x -> is_mce(x)).collect(Collectors.toList());
 			List<Integer> degs = new ArrayList<Integer>();
-			for (Object elem : ins) {
+			for (var elem : ins) {
 				degs.add(mce_degree(elem));
 			}
 			int upr = max_num(degs, 0);
-			List<List<Object>> ext = new ArrayList<List<Object>>();
-			for (Object elem : inputs.l) {
+			var ext = new ArrayList<List<IUgen>>();
+			for (var elem : inputs.l) {
 				ext.add(mce_extend(upr, elem));
 			}
-			List<List<Object>> iet = transposer(ext);
-			List<Object> outv = new ArrayList<Object>();
+			List<List<IUgen>> iet = transposer(ext);
+			var outv = new ArrayList<IUgen>();
 			// var outv = new UgenL();
-			for (List<Object> elem2 : iet) {
+			for (var elem2 : iet) {
 				UgenL newInps = new UgenL();
 				newInps.l = elem2;
 				Primitive p = new Primitive(prim.name).inputs(newInps).outputs(prim.outputs).rate(prim.rate)
@@ -489,20 +490,20 @@ public class JSc3 {
 		}
 	}
 
-	public static <T> Object mce_expand(T ugen) throws Exception {
+	public static IUgen mce_expand(IUgen ugen) throws Exception {
 		if (ugen instanceof Mce) {
-			List<Object> lst = new ArrayList<Object>();
-			List<Object> ugens = ((Mce) ugen).ugens.l;
-			for (Object elem : ugens) {
+			var lst = new ArrayList<IUgen>();
+			var ugens = ((Mce) ugen).ugens.l;
+			for (var elem : ugens) {
 				lst.add(mce_expand(elem));
 			}
 			UgenL outv = new UgenL();
 			outv.l = lst;
 			return new Mce(outv);
 		} else if (ugen instanceof Mrg) {
-			Object left = ((Mrg) ugen).left;
-			Object right = ((Mrg) ugen).right;
-			Object ug1 = mce_expand(left);
+			var left = ((Mrg) ugen).left;
+			var right = ((Mrg) ugen).right;
+			var ug1 = mce_expand(left);
 			return new Mrg(ug1, right);
 		} else {
 			Function<T, Boolean> rec = (T ug) -> {
@@ -524,7 +525,7 @@ public class JSc3 {
 		}
 	}
 
-	public static Object mce_channel(int n, Object ugen) throws Exception {
+	public static IUgen mce_channel(int n, IUgen ugen) throws Exception {
 		if (ugen instanceof Mce) {
 			var ugens = ((Mce) ugen).ugens.l;
 			return ugens.get(n);
@@ -532,13 +533,13 @@ public class JSc3 {
 			throw new Exception("Error: mce_channel");
 	}
 
-	public static UgenL mce_channels(Object ugen) throws Exception {
+	public static UgenL mce_channels(IUgen ugen) throws Exception {
 		if (ugen instanceof Mce) {
 			UgenL ugens = ((Mce) ugen).ugens;
 			return ugens;
 		} else if (ugen instanceof Mrg) {
-			Object left = ((Mrg) ugen).left;
-			Object right = ((Mrg) ugen).right;
+			var left = ((Mrg) ugen).left;
+			var right = ((Mrg) ugen).right;
 			UgenL lst = mce_channels(left);
 			int len = lst.l.size();
 			if (len > 1) {
@@ -554,7 +555,7 @@ public class JSc3 {
 			} else
 				throw new Exception("Error: mce_channels");
 		} else {
-			List<Object> outv = new ArrayList<Object>();
+			var outv = new ArrayList<IUgen>();
 			outv.add(ugen);
 			UgenL newOut = new UgenL();
 			newOut.l = outv;
@@ -590,25 +591,25 @@ public class JSc3 {
 		}
 	}
 
-	public static Object mk_ugen(String name, UgenL inputs, List<Rate> outputs) throws Exception {
+	public static IUgen mk_ugen(String name, UgenL inputs, List<Rate> outputs) throws Exception {
 		var ind = 0;
 		var sp = 0;
 		var rate = Rate.RateKr;
 		return mk_ugen(name, inputs, outputs, ind, sp, rate);
 	}
 
-	public static Object mk_ugen(String name, UgenL inputs, List<Rate> outputs, int ind) throws Exception {
+	public static IUgen mk_ugen(String name, UgenL inputs, List<Rate> outputs, int ind) throws Exception {
 		var sp = 0;
 		var rate = Rate.RateKr;
 		return mk_ugen(name, inputs, outputs, ind, sp, rate);
 	}
 
-	public static Object mk_ugen(String name, UgenL inputs, List<Rate> outputs, int ind, int sp) throws Exception {
+	public static IUgen mk_ugen(String name, UgenL inputs, List<Rate> outputs, int ind, int sp) throws Exception {
 		var rate = Rate.RateKr;
 		return mk_ugen(name, inputs, outputs, ind, sp, rate);
 	}
 
-	public static Object mk_ugen(String name, UgenL inputs, List<Rate> outputs, int ind, int sp, Rate rate)
+	public static IUgen mk_ugen(String name, UgenL inputs, List<Rate> outputs, int ind, int sp, Rate rate)
 			throws Exception {
 		var pr1 = new Primitive(name).rate(rate).inputs(inputs).outputs(outputs).special(sp).index(ind);
 		try {
