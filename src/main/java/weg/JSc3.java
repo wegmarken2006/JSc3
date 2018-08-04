@@ -29,9 +29,14 @@ public class JSc3 {
 		boolean isUgen();
 	}
 
+	public interface INode
+	{
+		boolean isNode();
+	}
 
-	public static class Constant<T> {
+	public static class Constant<T> implements IUgen{
 		public T value;
+		public boolean isUgen() { return true; }
 
 		public Constant(T value) {
 			this.value = value;
@@ -153,20 +158,21 @@ public class JSc3 {
 		}
 	}
 
-	public static class NodeC {
+	public static class NodeC implements INode{
 		public int nid, value;
-
+		public boolean isNode() { return true; }
 		public NodeC(int nid, int value) {
 			this.nid = nid;
 			this.value = value;
 		}
 	}
 
-	public static class NodeK {
+	public static class NodeK implements INode{
 		public int nid;
 		public int deflt = 0;
 		public String name;
 		public Rate rate = Rate.RateKr;
+		public boolean isNode() { return true; }
 
 		public NodeK(int nid, String name) {
 			this.name = name;
@@ -185,7 +191,7 @@ public class JSc3 {
 
 	}
 
-	public static class NodeU {
+	public static class NodeU implements INode{
 		public int nid;
 		public String name;
 		public UgenL inputs;
@@ -193,6 +199,7 @@ public class JSc3 {
 		public int special = 0;
 		public int ugenId;
 		public Rate rate = Rate.RateKr;
+		public boolean isNode() { return true; }
 
 		public NodeU(int nid, String name, UgenL inputs, List<Rate> outputs, int ugenId) {
 			this.nid = nid;
@@ -506,10 +513,10 @@ public class JSc3 {
 			var ug1 = mce_expand(left);
 			return new Mrg(ug1, right);
 		} else {
-			Function<T, Boolean> rec = (T ug) -> {
+			Function<IUgen, Boolean> rec = (IUgen ug) -> {
 				if (ugen instanceof Primitive) {
 					UgenL inputs = ((Primitive) ug).inputs;
-					List<Object> ins = inputs.l.stream().filter(x -> is_mce(x)).collect(Collectors.toList());
+					List<IUgen> ins = inputs.l.stream().filter(x -> is_mce(x)).collect(Collectors.toList());
 					return (ins.size() > 0);
 				} else
 					return false;
@@ -656,7 +663,7 @@ public class JSc3 {
 		return -1;
 	}
 
-	public static boolean find_c_p(int val, Object node) throws Exception {
+	public static boolean find_c_p(int val, INode node) throws Exception {
 		if (node instanceof NodeC) {
 			return val == ((NodeC) node).value;
 		}
@@ -673,21 +680,21 @@ public class JSc3 {
 		}
 	}
 
-	public static Tuple2<NodeC, Graph> push_c(int val, Graph gr) {
+	public static Tuple2<INode, Graph> push_c(int val, Graph gr) {
 		var node = new NodeC(gr.nextId + 1, val);
 		var consts = new ArrayList<NodeC>();
 		consts.add(node);
 		consts.addAll(gr.constants);
 		var gr1 = new Graph(gr.nextId + 1, consts, gr.controls, gr.ugens);
-		return new Tuple2<NodeC, Graph>(node, gr1);
+		return new Tuple2<INode, Graph>(node, gr1);
 	}
 
-	public static Tuple2<NodeC, Graph> mk_node_c(Object ugen, Graph gr) throws Exception {
+	public static Tuple2<INode, Graph> mk_node_c(IUgen ugen, Graph gr) throws Exception {
 		try {
 			var val = ((Constant<Integer>) ugen).value;
 			for (var nd : gr.constants) {
-				if (find_c_p(val, (Object) nd)) {
-					return new Tuple2<NodeC, Graph>(nd, gr);
+				if (find_c_p(val, nd)) {
+					return new Tuple2<INode, Graph>(nd, gr);
 				}
 			}
 			return push_c(val, gr);
@@ -697,14 +704,14 @@ public class JSc3 {
 		}
 	}
 
-	public static boolean find_k_p(String str, Object node) throws Exception {
+	public static boolean find_k_p(String str, INode node) throws Exception {
 		if (node instanceof NodeK) {
 			return str == ((NodeK) node).name;
 		}
 		throw new Exception("find_k_p");
 	}
 
-	public static Tuple2<NodeK, Graph> push_k_p(Object ugen, Graph gr) throws Exception {
+	public static Tuple2<INode, Graph> push_k_p(IUgen ugen, Graph gr) throws Exception {
 		if (ugen instanceof Control) {
 			var ctrl1 = (Control) ugen;
 			var node = new NodeK(gr.nextId + 1, ctrl1.name).deflt(ctrl1.index).rate(ctrl1.rate);
@@ -712,27 +719,27 @@ public class JSc3 {
 			contrs.add(node);
 			contrs.addAll(gr.controls);
 			var gr1 = new Graph(gr.nextId + 1, gr.constants, contrs, gr.ugens);
-			return new Tuple2<NodeK, Graph>(node, gr1);
+			return new Tuple2<INode, Graph>(node, gr1);
 		}
 		throw new Exception("push_k_p");
 	}
 
-	public static Tuple2<NodeK, Graph> mk_node_k(Object ugen, Graph gr) throws Exception {
+	public static Tuple2<INode, Graph> mk_node_k(IUgen ugen, Graph gr) throws Exception {
 		try {
 			var name = ((Control) ugen).name;
 			for (var nd : gr.controls) {
-				if (find_k_p(name, (Object) nd)) {
-					return new Tuple2<NodeK, Graph>(nd, gr);
+				if (find_k_p(name, nd)) {
+					return new Tuple2<INode, Graph>(nd, gr);
 				}
 			}
-			return push_k_p(name, gr);
+			return push_k_p(ugen, gr);
 
 		} catch (Exception e) {
 			throw new Exception("mk_node_k");
 		}
 	}
 
-	public static boolean find_u_p(Rate rate, String name, int id1, Object node) throws Exception {
+	public static boolean find_u_p(Rate rate, String name, int id1, INode node) throws Exception {
 		if (node instanceof NodeU) {
 			var nu = (NodeU) node;
 			return (rate == nu.rate) && (name == nu.name) && (id1 == nu.ugenId);
@@ -740,7 +747,7 @@ public class JSc3 {
 		throw new Exception("find_u_p");
 	}
 
-	public static Tuple2<NodeU, Graph> push_u(Object ugen, Graph gr) throws Exception {
+	public static Tuple2<INode, Graph> push_u(IUgen ugen, Graph gr) throws Exception {
 		if (ugen instanceof Primitive) {
 			var pr1 = (Primitive) ugen;
 			var node = new NodeU(gr.nextId + 1, pr1.name, pr1.inputs, pr1.outputs, pr1.index).special(pr1.special)
@@ -750,12 +757,12 @@ public class JSc3 {
 			ugens.add(node);
 			ugens.addAll(gr.ugens);
 			var gr1 = new Graph(gr.nextId + 1, gr.constants, gr.controls, ugens);
-			return new Tuple2<NodeU, Graph>(node, gr1);
+			return new Tuple2<INode, Graph>(node, gr1);
 		}
 		throw new Exception("push_u_p");
 	}
 
-	public static Object as_from_port(Object node) throws Exception {
+	public static IUgen as_from_port(INode node) throws Exception {
 		if (node instanceof NodeC) {
 			return new FromPortC(((NodeC) node).nid);
 		} else if (node instanceof NodeK) {
@@ -766,11 +773,11 @@ public class JSc3 {
 		throw new Exception("as_from_port");
 	}
 	
-	public static Tuple2<List<Object>, Graph> acc(List<Object> ll, List<Object>nn, Graph gr) throws Exception  
+	public static Tuple2<List<INode>, Graph> acc(List<IUgen> ll, List<INode>nn, Graph gr) throws Exception  
 	{
 		if (ll.size() == 0) {
 			Collections.reverse(nn);
-			return new Tuple2<List<Object>, Graph>(nn, gr);
+			return new Tuple2<List<INode>, Graph>(nn, gr);
 		}
 		else {
 			try {
@@ -784,10 +791,10 @@ public class JSc3 {
 			}
 		}	
 	}
-	public static Tuple2<NodeU, Graph> mk_node_u(Object ugen, Graph gr) throws Exception {
+	public static Tuple2<INode, Graph> mk_node_u(IUgen ugen, Graph gr) throws Exception {
 		if (ugen instanceof Primitive) {
 			var pr1 = (Primitive)ugen;
-			var ng = acc(pr1.inputs.l, new ArrayList<Object>(), gr);
+			var ng = acc(pr1.inputs.l, new ArrayList<INode>(), gr);
 			var gnew = ng.two;
 			var ng1 = ng.one;
 			var inputs2 = new UgenL();
@@ -799,7 +806,7 @@ public class JSc3 {
 			var index = pr1.index;
 			for (var nd2 : gnew.ugens) {
 				if (find_u_p(rate, name, index, nd2)) {
-					return new Tuple2<NodeU, Graph>(nd2, gnew);
+					return new Tuple2<INode, Graph>(nd2, gnew);
 				}
 			}
 			var pr = new Primitive(name).rate(rate).inputs(inputs2)
@@ -809,19 +816,19 @@ public class JSc3 {
 		throw new Exception("mk_node_u");
 	}
 	
-	public static <T> Tuple2<NodeC, Graph> mk_node(Constant<T> ugen, Graph gr) throws Exception {
+	public static <T> Tuple2<INode, Graph> mk_node(Constant<T> ugen, Graph gr) throws Exception {
 		return mk_node_c(ugen, gr);
 	}
 
-	public static Tuple2<NodeU, Graph> mk_node(Primitive ugen, Graph gr) throws Exception {
+	public static Tuple2<INode, Graph> mk_node(Primitive ugen, Graph gr) throws Exception {
 		return mk_node_u(ugen, gr);
 	}
 
-	public static <T> Tuple2<T, Graph> mk_node(Object ugen, Graph gr) throws Exception {
+	public static Tuple2<INode, Graph> mk_node(IUgen ugen, Graph gr) throws Exception {
 		try {
 			var gn = mk_node(((Mrg)ugen).right, gr);
 			var g1 = gn.two;
-			return (Tuple2<T, Graph>)mk_node(((Mrg)ugen).left, g1);			
+			return mk_node(((Mrg)ugen).left, g1);			
 		} catch (Exception e) {
 			throw new Exception("mk_node");
 		}
@@ -837,7 +844,7 @@ public class JSc3 {
 	    return node;
 	}
 	
-	public static Object mrg_n(UgenL lst) {
+	public static IUgen mrg_n(UgenL lst) {
 	    if (lst.l.size() == 1) {
 	        return lst.l.get(0);
 	    }
@@ -845,12 +852,14 @@ public class JSc3 {
 	        return new Mrg(lst.l.get(0), lst.l.get(1));
 	    }
 	    else {
-	    	var newLst = new UgenL(lst.l.subList(1, lst.l.size()));
-	        return new Mrg(lst.l.get(0), mrg_n(newLst));
+			var newUL = new UgenL();
+			var newLst = lst.l.subList(1, lst.l.size());
+			newUL.l.addAll(newLst)			
+	        return new Mrg(lst.l.get(0), mrg_n(newUL));
 	    }
 	}
 	
-	public static <T> Object prepare_root(T ugen) {
+	public static IUgen prepare_root(IUgen ugen) {
 	    if (ugen instanceof Mce) {
 	        return mrg_n(((Mce)ugen).ugens);
 	    }
@@ -866,7 +875,7 @@ public class JSc3 {
 	    return new Graph(0, new ArrayList<NodeC>(), new ArrayList<NodeK>(), new ArrayList<NodeU>());
 	}
 
-	public static <T> Graph synth(T ugen) throws Exception {
+	public static Graph synth(IUgen ugen) throws Exception {
 		try {
 		    var root = prepare_root(ugen);
 		    var gn = mk_node(root, empty_graph());

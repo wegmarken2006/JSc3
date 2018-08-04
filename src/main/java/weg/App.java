@@ -31,9 +31,9 @@ public class App
               .outputs(List.of(Rate.RateIr)).rate(Rate.RateKr);
         UgenL il1 = new UgenL(c1, p2);
         UgenL il2 = new UgenL(c1, p2, c1, p2, c1);
-        Mrg mg1 = new Mrg((Object) p1, (Object) mc1);
-        Mrg mg2 = new Mrg((Object) p2, (Object) p1);
-        Mrg mg3 = new Mrg((Object) mc1, (Object) p2);
+        Mrg mg1 = new Mrg(p1, mc1);
+        Mrg mg2 = new Mrg(p2, p1);
+        Mrg mg3 = new Mrg(mc1, p2);
         List<List<Object>> ill1 = List.of(List.of(1, 2, 3), List.of(4, 5, 6));
         List<List<Object>> ill2 = JSc3.transposer(ill1);
         List<Rate> tempListR = new ArrayList<Rate>();
