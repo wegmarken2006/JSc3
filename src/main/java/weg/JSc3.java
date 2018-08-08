@@ -839,7 +839,7 @@ public class JSc3 {
 	    for (var ind = 1; ind < num+1; ind++) {
 	        rates.add(Rate.RateKr);
 	    }
-	    var node = new NodeU(-1, "Control", new UgenL(), new ArrayList<Rate>(),0)
+	    var node = new NodeU(-1, "Control", new UgenL(), rates,0)
 	    		.special(0) .rate(Rate.RateKr);
 	    return node;
 	}
@@ -854,7 +854,7 @@ public class JSc3 {
 	    else {
 			var newUL = new UgenL();
 			var newLst = lst.l.subList(1, lst.l.size());
-			newUL.l.addAll(newLst)			
+			newUL.l.addAll(newLst);			
 	        return new Mrg(lst.l.get(0), mrg_n(newUL));
 	    }
 	}
