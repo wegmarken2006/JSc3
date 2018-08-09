@@ -1,5 +1,6 @@
 package weg;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,19 +25,20 @@ public class JSc3 {
 	private JSc3() {
 	}
 
-	public interface IUgen
-	{
+	public interface IUgen {
 		boolean isUgen();
 	}
 
-	public interface INode
-	{
+	public interface INode {
 		boolean isNode();
 	}
 
-	public static class Constant<T> implements IUgen{
+	public static class Constant<T> implements IUgen {
 		public T value;
-		public boolean isUgen() { return true; }
+
+		public boolean isUgen() {
+			return true;
+		}
 
 		public Constant(T value) {
 			this.value = value;
@@ -55,23 +57,25 @@ public class JSc3 {
 		}
 	}
 
-	public static class Mce implements IUgen
-	{
+	public static class Mce implements IUgen {
 		public UgenL ugens;
 
-		public boolean isUgen() { return true; }
-		
+		public boolean isUgen() {
+			return true;
+		}
+
 		public Mce(UgenL ugens) {
 			this.ugens = ugens;
 		}
 	}
 
-	public static class Mrg implements IUgen
-	{
+	public static class Mrg implements IUgen {
 		public IUgen left, right;
 
-		public boolean isUgen() { return true; }
-		
+		public boolean isUgen() {
+			return true;
+		}
+
 		public Mrg(IUgen left, IUgen right) {
 			this.left = left;
 			this.right = right;
@@ -83,7 +87,9 @@ public class JSc3 {
 		public int index = 0;
 		public Rate rate = Rate.RateKr;
 
-		public boolean isUgen() { return true; }
+		public boolean isUgen() {
+			return true;
+		}
 
 		public Control(String name) {
 			this.name = name;
@@ -101,8 +107,7 @@ public class JSc3 {
 
 	}
 
-	public static class Primitive implements IUgen 
-	{
+	public static class Primitive implements IUgen {
 		public Rate rate = Rate.RateKr;
 		public UgenL inputs = new UgenL();
 		public List<Rate> outputs = null;
@@ -110,8 +115,10 @@ public class JSc3 {
 		public int special = 0;
 		public int index = 0;
 
-		public boolean isUgen() { return true; }
-		
+		public boolean isUgen() {
+			return true;
+		}
+
 		public Primitive(String name) {
 			this.name = name;
 		}
@@ -146,7 +153,9 @@ public class JSc3 {
 		public Primitive primitive;
 		public int index = 0;
 
-		public boolean isUgen() { return true; }
+		public boolean isUgen() {
+			return true;
+		}
 
 		public Proxy(Primitive primitive) {
 			this.primitive = primitive;
@@ -158,21 +167,28 @@ public class JSc3 {
 		}
 	}
 
-	public static class NodeC implements INode{
+	public static class NodeC implements INode {
 		public int nid, value;
-		public boolean isNode() { return true; }
+
+		public boolean isNode() {
+			return true;
+		}
+
 		public NodeC(int nid, int value) {
 			this.nid = nid;
 			this.value = value;
 		}
 	}
 
-	public static class NodeK implements INode{
+	public static class NodeK implements INode {
 		public int nid;
 		public int deflt = 0;
 		public String name;
 		public Rate rate = Rate.RateKr;
-		public boolean isNode() { return true; }
+
+		public boolean isNode() {
+			return true;
+		}
 
 		public NodeK(int nid, String name) {
 			this.name = name;
@@ -191,7 +207,7 @@ public class JSc3 {
 
 	}
 
-	public static class NodeU implements INode{
+	public static class NodeU implements INode {
 		public int nid;
 		public String name;
 		public UgenL inputs;
@@ -199,7 +215,10 @@ public class JSc3 {
 		public int special = 0;
 		public int ugenId;
 		public Rate rate = Rate.RateKr;
-		public boolean isNode() { return true; }
+
+		public boolean isNode() {
+			return true;
+		}
 
 		public NodeU(int nid, String name, UgenL inputs, List<Rate> outputs, int ugenId) {
 			this.nid = nid;
@@ -220,19 +239,24 @@ public class JSc3 {
 
 	}
 
-	public static class FromPortC implements IUgen{
+	public static class FromPortC implements IUgen {
 		public int port_nid;
-		public boolean isUgen() { return true; }
+
+		public boolean isUgen() {
+			return true;
+		}
 
 		public FromPortC(int port_nid) {
 			this.port_nid = port_nid;
 		}
 	}
 
-	public static class FromPortK implements IUgen{
+	public static class FromPortK implements IUgen {
 		public int port_nid;
-		
-		public boolean isUgen() { return true; }
+
+		public boolean isUgen() {
+			return true;
+		}
 
 		public FromPortK(int port_nid) {
 			this.port_nid = port_nid;
@@ -242,7 +266,10 @@ public class JSc3 {
 	public static class FromPortU implements IUgen {
 		public int port_nid;
 		public int port_idx;
-		public boolean isUgen() { return true; }
+
+		public boolean isUgen() {
+			return true;
+		}
 
 		public FromPortU(int port_nid, int port_idx) {
 			this.port_nid = port_nid;
@@ -772,28 +799,27 @@ public class JSc3 {
 		}
 		throw new Exception("as_from_port");
 	}
-	
-	public static Tuple2<List<INode>, Graph> acc(List<IUgen> ll, List<INode>nn, Graph gr) throws Exception  
-	{
+
+	public static Tuple2<List<INode>, Graph> acc(List<IUgen> ll, List<INode> nn, Graph gr) throws Exception {
 		if (ll.size() == 0) {
 			Collections.reverse(nn);
 			return new Tuple2<List<INode>, Graph>(nn, gr);
-		}
-		else {
+		} else {
 			try {
 				var ng = mk_node(ll.get(0), gr);
 				var ng1 = ng.one;
 				var ng2 = ng.two;
 				nn.add(0, ng1);
-				return acc(ll.subList(1, ll.size()), nn, ng2);				
+				return acc(ll.subList(1, ll.size()), nn, ng2);
 			} catch (Exception e) {
 				throw new Exception("mk_node_u acc");
 			}
-		}	
+		}
 	}
+
 	public static Tuple2<INode, Graph> mk_node_u(IUgen ugen, Graph gr) throws Exception {
 		if (ugen instanceof Primitive) {
-			var pr1 = (Primitive)ugen;
+			var pr1 = (Primitive) ugen;
 			var ng = acc(pr1.inputs.l, new ArrayList<INode>(), gr);
 			var gnew = ng.two;
 			var ng1 = ng.one;
@@ -809,13 +835,12 @@ public class JSc3 {
 					return new Tuple2<INode, Graph>(nd2, gnew);
 				}
 			}
-			var pr = new Primitive(name).rate(rate).inputs(inputs2)
-					.outputs(pr1.outputs).special(pr1.special);
+			var pr = new Primitive(name).rate(rate).inputs(inputs2).outputs(pr1.outputs).special(pr1.special);
 			return push_u(pr, gnew);
 		}
 		throw new Exception("mk_node_u");
 	}
-	
+
 	public static <T> Tuple2<INode, Graph> mk_node(Constant<T> ugen, Graph gr) throws Exception {
 		return mk_node_c(ugen, gr);
 	}
@@ -826,76 +851,161 @@ public class JSc3 {
 
 	public static Tuple2<INode, Graph> mk_node(IUgen ugen, Graph gr) throws Exception {
 		try {
-			var gn = mk_node(((Mrg)ugen).right, gr);
+			var gn = mk_node(((Mrg) ugen).right, gr);
 			var g1 = gn.two;
-			return mk_node(((Mrg)ugen).left, g1);			
+			return mk_node(((Mrg) ugen).left, g1);
 		} catch (Exception e) {
 			throw new Exception("mk_node");
 		}
 	}
-	
-	public static NodeU sc3_implicit (int num) {
-	    var rates = new ArrayList<Rate>();
-	    for (var ind = 1; ind < num+1; ind++) {
-	        rates.add(Rate.RateKr);
-	    }
-	    var node = new NodeU(-1, "Control", new UgenL(), rates,0)
-	    		.special(0) .rate(Rate.RateKr);
-	    return node;
+
+	public static NodeU sc3_implicit(int num) {
+		var rates = new ArrayList<Rate>();
+		for (var ind = 1; ind < num + 1; ind++) {
+			rates.add(Rate.RateKr);
+		}
+		var node = new NodeU(-1, "Control", new UgenL(), rates, 0).special(0).rate(Rate.RateKr);
+		return node;
 	}
-	
+
 	public static IUgen mrg_n(UgenL lst) {
-	    if (lst.l.size() == 1) {
-	        return lst.l.get(0);
-	    }
-	    else if (lst.l.size() == 2) {
-	        return new Mrg(lst.l.get(0), lst.l.get(1));
-	    }
-	    else {
+		if (lst.l.size() == 1) {
+			return lst.l.get(0);
+		} else if (lst.l.size() == 2) {
+			return new Mrg(lst.l.get(0), lst.l.get(1));
+		} else {
 			var newUL = new UgenL();
 			var newLst = lst.l.subList(1, lst.l.size());
-			newUL.l.addAll(newLst);			
-	        return new Mrg(lst.l.get(0), mrg_n(newUL));
-	    }
+			newUL.l.addAll(newLst);
+			return new Mrg(lst.l.get(0), mrg_n(newUL));
+		}
 	}
-	
+
 	public static IUgen prepare_root(IUgen ugen) {
-	    if (ugen instanceof Mce) {
-	        return mrg_n(((Mce)ugen).ugens);
-	    }
-	    else if (ugen instanceof Mrg) {
-	        return new Mrg(prepare_root(((Mrg)ugen).left), prepare_root(((Mrg)ugen).right));
-	    }
-	    else {
-	        return ugen;
-	    }
+		if (ugen instanceof Mce) {
+			return mrg_n(((Mce) ugen).ugens);
+		} else if (ugen instanceof Mrg) {
+			return new Mrg(prepare_root(((Mrg) ugen).left), prepare_root(((Mrg) ugen).right));
+		} else {
+			return ugen;
+		}
 	}
 
 	public static Graph empty_graph() {
-	    return new Graph(0, new ArrayList<NodeC>(), new ArrayList<NodeK>(), new ArrayList<NodeU>());
+		return new Graph(0, new ArrayList<NodeC>(), new ArrayList<NodeK>(), new ArrayList<NodeU>());
 	}
 
 	public static Graph synth(IUgen ugen) throws Exception {
 		try {
-		    var root = prepare_root(ugen);
-		    var gn = mk_node(root, empty_graph());
-		    var gr = gn.two;
-		    var cs = gr.constants;
-		    var ks = gr.controls;
-		    var us = gr.ugens;
-		    var us1 = us;
-		    Collections.reverse(us1);
-		    if (ks.size() != 0) {
-		    	var node = sc3_implicit(ks.size());
-		    	us1.add(0, node);
-		    }
-		    var grout = new Graph(-1, cs, ks, us1);
-		    return grout;
-			
+			var root = prepare_root(ugen);
+			var gn = mk_node(root, empty_graph());
+			var gr = gn.two;
+			var cs = gr.constants;
+			var ks = gr.controls;
+			var us = gr.ugens;
+			var us1 = us;
+			Collections.reverse(us1);
+			if (ks.size() != 0) {
+				var node = sc3_implicit(ks.size());
+				us1.add(0, node);
+			}
+			var grout = new Graph(-1, cs, ks, us1);
+			return grout;
+
 		} catch (Exception e) {
 			throw new Exception("synth");
 		}
 	}
 
+	public static byte[] encode_node_k(MMap mm, INode node) {
+
+		var out1 = Osc.str_pstr(((NodeK) node).name);
+		var id1 = fetch(((NodeK) node).nid, mm.ks);
+		var outb = new ByteArrayOutputStream();
+		try {
+			outb.write(out1);
+			outb.write(Osc.encode_i16(id1));				
+		} catch (Exception e) {
+		}
+		return outb.toByteArray();
+	}
+	public static byte[] encode_input(Input inp) {
+		var outb = new ByteArrayOutputStream();
+		try {
+			outb.write(Osc.encode_i16(inp.u));
+			outb.write(Osc.encode_i16(inp.p));				
+		} catch (Exception e) {
+		}
+		return outb.toByteArray();
+	}
+
+	public static Input mk_input(MMap mm, IUgen fp) throws Exception {
+		if (fp instanceof FromPortC) {
+			var p = fetch(((FromPortC)fp).port_nid, mm.cs);
+			return new Input(-1, p);
+		}
+		if (fp instanceof FromPortK) {
+			var p = fetch(((FromPortK)fp).port_nid, mm.ks);
+			return new Input(0, p);
+		}
+		if (fp instanceof FromPortU) {
+			var u = fetch(((FromPortU)fp).port_nid, mm.us);
+			return new Input(u, ((FromPortU)fp).port_idx);
+		}
+        throw new Exception("mk_input");
+	}
+
+	public static byte[] encode_node_u (MMap mm, INode node) {
+		var outb = new ByteArrayOutputStream();
+		try {
+			var nu = ((NodeU)node);
+			var len1 = nu.inputs.l.size();
+			var len2 = nu.outputs.size();
+			outb.write(Osc.str_pstr(nu.name));
+			outb.write(Osc.encode_i8(nu.rate.value));
+			outb.write(Osc.encode_i16(len1));
+			outb.write(Osc.encode_i16(len2));
+			for (var ind = 0; ind < len1; ind = ind + 1) {
+				outb.write(encode_input(mk_input(mm, nu.inputs.l.get(ind))));
+			}
+			for (var ind = 0; ind < len2; ind = ind + 1) {
+				outb.write(Osc.encode_i8(nu.outputs.get(ind).value));
+			}
+		} catch (Exception e) {
+		}
+		return outb.toByteArray();
+	}
+    public static byte[] encode_graphdef(String name, Graph graph) {
+		var outb = new ByteArrayOutputStream();
+		try {
+			var mm = mk_map(graph);
+
+			outb.write(Osc.encode_str("SCgf"));
+			outb.write(Osc.encode_i32(0));
+			outb.write(Osc.encode_i32(1));
+			outb.write(Osc.str_pstr(name));
+			outb.write(Osc.encode_i16(graph.constants.size()));
+			var l1 = graph.constants.stream().map(x -> node_c_value(x)).collect(Collectors.toList());
+			for (var elem : l1) {
+				outb.write(Osc.encode_f32(elem));
+			}
+			outb.write(Osc.encode_i16(graph.controls.size()));
+			var l2 = graph.controls.stream().map(x -> node_k_default(x)).collect(Collectors.toList());
+			for (var elem : l2) {
+				outb.write(Osc.encode_f32(elem));
+			}
+			outb.write(Osc.encode_i16(graph.controls.size()));
+			for (var elem : graph.controls) {
+				outb.write(encode_node_k(mm, elem));
+			}
+			outb.write(Osc.encode_i16(graph.ugens.size()));
+			
+			for (var elem : graph.ugens) {
+				outb.write(encode_node_u(mm, elem));
+			}		
+		} catch (Exception e) {
+		}
+		return outb.toByteArray();
+	}
 
 }

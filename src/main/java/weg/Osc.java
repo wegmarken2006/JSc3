@@ -1,6 +1,9 @@
 package weg;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Osc {
     private Osc(){}
@@ -70,6 +73,19 @@ public class Osc {
         var ii = bb.getDouble();
         return ii;
     }
+ 
+    public static byte[] encode_str(String str) {
+        return str.getBytes();
+    }
 
+    public static byte[] str_pstr(String str) {
 
+        var outb = new ByteArrayOutputStream();
+        outb.write(str.length());
+        try {
+            outb.write(str.getBytes());            
+        } catch (Exception e) {   
+        }
+        return outb.toByteArray();
+    }
 }
