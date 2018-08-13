@@ -236,22 +236,29 @@ public class Osc {
             DatagramPacket sendPacket = 
             new DatagramPacket(message, message.length, PortConfig.UdpIP, PortConfig.UdpPort);
             PortConfig.UdpCl.send(sendPacket);
+
+            var so = new SendOsc();
+            so.start();;
                 
         } catch (Exception e) {
             System.out.println("Send error: ");
             System.out.println(e.getMessage());
         }        
 
-        byte[] receiveData = new byte[1024];
-        try {
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            PortConfig.UdpCl.receive(receivePacket);
-            System.out.println("Received: ");
-            System.out.println(new String(receivePacket.getData()));
-        } catch (Exception e) {
-            System.out.println("Receive error: ");
-            System.out.println(e.getMessage());
-        }
+    }
 
+    public static class SendOsc extends Thread {
+        public void run() {
+            byte[] receiveData = new byte[1024];
+            try {
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                PortConfig.UdpCl.receive(receivePacket);
+                System.out.println("Received: ");
+                System.out.println(new String(receivePacket.getData()));
+            } catch (Exception e) {
+                System.out.println("Receive error: ");
+                System.out.println(e.getMessage());
+            }    
+        }
     }
 }
