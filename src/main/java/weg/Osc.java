@@ -99,9 +99,8 @@ public class Osc {
         var outb = new ByteArrayOutputStream();
         outb.write(bts, 0, bts.length);
         var n = align(bts.length);
-
-        for (var ind = 0; ind < n; ind++) {
-            outb.write(pad, bts.length + ind, pad.length);
+        for (var ind1 = 0; ind1 < n; ind1++) {
+            outb.write(pad, 0, pad.length);
         }
         return outb.toByteArray();
     }
@@ -117,10 +116,9 @@ public class Osc {
         var outb = new ByteArrayOutputStream();
         outb.write(bts.length);
 
-        var ind = outb.toByteArray().length;
         var eb = new byte[] { 0x0 };
         var edb = extend_(eb, bts);
-        outb.write(edb, ind, edb.length);
+        outb.write(edb, 0, edb.length);
         return outb.toByteArray();
     }
 
@@ -157,7 +155,7 @@ public class Osc {
         return sout;
     }
 
-    public class Message {
+    public static class Message {
         public String Name;
         public Object[] LDatum;
 
@@ -173,24 +171,30 @@ public class Osc {
         var datum = encode_datum(message.Name);
         var len = datum.length;
         outb.write(datum, 0, len);
-        var ind = len;
         datum = encode_datum(descriptor(message.LDatum));
         len = datum.length;
-        outb.write(datum, ind, len);
+        outb.write(datum, 0, len);
 
         for (var item : message.LDatum) {
-            ind = ind + len;
             datum = encode_datum(item);
             len = datum.length;
-            outb.write(datum, ind, len);
+            outb.write(datum, 0, len);
         }
         return outb.toByteArray();
     }
+    public static void print_barray(byte[] ba)
+    {
+        for (var item : ba)
+        {
+            System.out.print(item);
+            System.out.print(" ");
+        }
 
+    }
     public static void send_message(Message message) {
         var bmsg = encode_message(message);
         System.out.println("\nDEBUG");
-        System.out.println(bmsg);
+        print_barray(bmsg);
         osc_send(bmsg);
     }
 
@@ -200,12 +204,25 @@ public class Osc {
         public static DatagramSocket UdpCl;
     }
 
+    public static void sc_start()
+    {
+        osc_set_port();
+        Object[] b1 = {1};
+        Object[] b2 = { 1, 1, 0 };
+        var msg1 = new Message("/notify", b1);
+        send_message(msg1);
+        msg1 = new Message("/g_new", b2);
+        send_message(msg1);
+    }
+
+
     public static void osc_set_port()
     {
         try {
             PortConfig.UdpPort = 57110;
             PortConfig.UdpIP = InetAddress.getByName("localhost");
             PortConfig.UdpCl = new DatagramSocket();
+            PortConfig.UdpCl.setSoTimeout(2000);
                 
         } catch (Exception e) {
             System.out.println("Connect error: ");
